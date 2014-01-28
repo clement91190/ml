@@ -105,7 +105,8 @@ class Simplex(OptimizationAlgorithm):
             self.optimize_step()
             if k % 20 == 0:
                 self.restart()
-            #self.plot()
+            self.plot()
+            raw_input()
 
     def get_result(self):
         """ return the best value returned by the algorithm """

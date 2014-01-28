@@ -18,7 +18,7 @@ def from_array_to_model(tab):
     q[10] = t[28:30]
     q[11] = t[31:36]
 
-    proba = reduce(lambda: x,y: x+y, q)
+    proba = reduce(lambda x, y: x + y, q)
     assert(len(proba) == 26)
     proba = np.array(proba)
     return proba
@@ -30,11 +30,20 @@ def proba_of_being_asked_a_question(tab):
     proba = from_array_to_model(tab)
     q = [0 for i in range(11)]
     q[0] = 1.0
+    q[6] = proba[1]
     q[1] = proba[0]
-    q[8] = proba[1]
+    q[8] = q[1] * (1 - proba[2]) 
     q[2] = q[1] * proba[2]
-    q[10] = q[1] * (1.0 - proba[2])
     q[3] = q[2]
-    q[4] = q[3] * proba[]
+    q[4] = q[3] * (1 - proba[4])
+    q[5] = q[1] + q[6]
+    q[7] = q[5] * proba[8]
+    q[9] = q[3] * proba[4]
+    q[10] = q[9]
+
+    return q
 
 
+def importance(tab):
+    """ show the importance of the question if near 0. """
+    pass

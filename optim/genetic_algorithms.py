@@ -128,7 +128,8 @@ class GeneticAlgorithm(OptimizationAlgorithm):
         self.stored_results.append([self.best_of_population()[1]])
         assert(all([s is not None for s in self.population]))
         print "##std##", np.std(self.population)
-        #self.plot()
+        self.plot()
+        raw_input()
 
     def optimize(self, k, verbose):
         """ repete for k step the optimize_step """

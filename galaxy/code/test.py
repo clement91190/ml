@@ -73,42 +73,6 @@ class HiddenLayer(object):
         # parameters of the model
         self.params = [self.W, self.b]
         
-        
-class LogisticRegression():
-    def __init__(self, input, n_in, n_out, batch_size):
-        """ input is a matrix containing a minibatch of vector """
-        self.input = input
-
-        # initialize with 0 the weights W as a matrix of shape (n_in, n_out)
-        self.W = theano.shared(value=numpy.zeros((n_in, n_out),
-                                                 dtype=theano.config.floatX),
-                                name='W', borrow=True)
-        # initialize the baises b as a vector of n_out 0s
-        self.ones = theano.shared(value=numpy.ones((1, batch_size),
-                                                 dtype=theano.config.floatX),
-                               name='ones', borrow=True)
-        self.b = theano.shared(value=numpy.zeros((n_out, 1),
-                                                 dtype=theano.config.floatX),
-                               name='b', borrow=True)
-        # compute vector of class-membership probabilities in symbolic form
-
-        self.p_y_given_x = T.nnet.softmax(T.dot(input, self.W) + T.transpose(T.dot(self.b, self.ones)))
-        self.params = [self.W, self.b]  
-
-    def rmse(self, proba):
-        """ rmse over the minibatch """
-        print "coucou"
-        #self.result()
-        return T.sqrt(T.mean(T.sqr(proba - self.p_y_given_x)))
-
-    def result(self):
-        print " W"
-        print self.W.get_value()
-        print " b"
-        print self.b.get_value()
-        print "input"
-        print self.input
-
 def learn():
     
     #hyper-parameters : 
@@ -142,11 +106,13 @@ def learn():
     y = T.fmatrix('y')
     x = T.fmatrix('x')
    
-    classifier = MLP(input=x, n_in=size, n_out=37, batch_size=batch_size, n_hidden=n_hidden)
-    cost = classifier.rmse(y) \
-        + L1_reg * classifier.L1 \
-        + L2_reg * classifier.L2_sqr
-
+    #classifier = MLP(input=x, n_in=size, n_out=37, batch_size=batch_size, n_hidden=n_hidden)
+    # cost = classifier.rmse(y) \
+    #     + L1_reg * classifier.L1 \
+    #    + L2_reg * classifier.L2_sqr
+    
+    classifier = LogisticRegression(input=x, n_in=size, n_out=37, batch_size=batch_size)
+    cost = classifier.rmse(y)
     
     # compiling a Theano function that computes the mistakes that are made by
     validate_model = theano.function(
@@ -200,7 +166,7 @@ def learn():
             x1 = train_set_x[minibatch_index * batch_size: (minibatch_index + 1) * batch_size]
             y1 = train_set_y[minibatch_index * batch_size: (minibatch_index + 1) * batch_size]  # the model on a minibatch
             
-            train_model(x1, y1)
+            train_err = train_model(x1, y1)
             # iteration number
             iter = (epoch - 1) * n_train_batches + minibatch_index
            
@@ -214,6 +180,7 @@ def learn():
                     (epoch, minibatch_index + 1, n_train_batches,
                     this_validation_loss * 100.))
 
+                print "train error", train_err
                 # if we got the best validation score until now
                 if this_validation_loss < best_validation_loss:
                     #improve patience if loss improvement is good enough
@@ -249,7 +216,7 @@ def learn():
 
 def load_data():
     print '... loading data'
-    dataset = 'data/training_set_v1/training_small.pkl'
+    dataset = 'data/training_set_v1/training.pkl'
     # Load the dataset
     with open(dataset, 'rb') as f:
         train_set, valid_set, test_set = cPickle.load(f)

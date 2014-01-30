@@ -38,25 +38,48 @@ class MLP(object):
 #TODO change this for any architecture.
         self.L1_reg = 0.00
         self.L2_reg = 0.0001
-        n_in, n_hidden, n_out = architecture
+        n_out = architecture[-1]
+        n_hiddens = architecture[:-2]
+        n_hidden_layers = len(n_hiddens)
         if params is None:
-            Wh, bh, Wl, bl = None, None, None, None
+            Wl, bl = None, None
+            hidden_params = []
+            for n_h in range(n_hidden_layers):
+                hidden_params += [None, None]
         else:
-            Wh, bh, Wl, bl = params
-        self.hiddenLayer = HiddenLayer(input=input,
-                                       n_in=n_in, n_out=n_hidden,
-                                       W=Wh, b=bh)
+            Wl, bl = params[-2:]
+            hidden_params = params[:-2]
 
+        #building hidden layers 
+        self.hiddenLayers = []
+        input_temp = input
+        for i, n_in_temp in enumerate(n_hiddens):
+            n_hidden_temp = architecture[i + 1]
+            Wh, bh = hidden_params[2*i: 2*(i+1)]
+            self.hiddenLayers.append(
+                HiddenLayer(
+                    input=input_temp,
+                    n_in=n_in_temp, n_out=n_hidden_temp,
+                    W=Wh, b=bh))
+            input_temp = self.hiddenLayers[-1].output
+        
+        #building last layer
         self.logRegressionLayer = LogisticRegression(
-            x=self.hiddenLayer.output,
+            x=input_temp,
             y=y,
-            n_in=n_hidden,
+            n_in=architecture[-2],
             n_out=n_out,
             W=Wl, b=bl)
+        
+        L1_sum = lambda W:abs(W).sum()
+        L2_sum = lambda W:abs(W ** 2).sum()
 
-        self.L1 = abs(self.hiddenLayer.W).sum() + abs(self.logRegressionLayer.W).sum()
+        sum_W_hidden1 = reduce(lambda W1, W2: L1_sum(W1) + L1_sum(W2), [hidden.W for hidden in self.hiddenLayers]) 
+        sum_W_hidden2 = reduce(lambda W1, W2: L2_sum(W1) + L2_sum(W2), [hidden.W for hidden in self.hiddenLayers]) 
 
-        self.L2_sqr = (self.hiddenLayer.W ** 2).sum() + (self.logRegressionLayer.W ** 2).sum()
+        self.L1 = sum_W_hidden1 + abs(self.logRegressionLayer.W).sum()
+
+        self.L2_sqr = sum_W_hidden2 + (self.logRegressionLayer.W ** 2).sum()
 
         self.cross_err = self.logRegressionLayer.cross_err + self.L1_reg * self.L1 + self.L2_reg * self.L2_sqr
 
@@ -64,6 +87,6 @@ class MLP(object):
         
         self.proba = self.logRegressionLayer.p_1
 
-        self.params = self.hiddenLayer.params + self.logRegressionLayer.params
+        self.params = reduce(lambda x, y: x + y, [hidden.params for hidden in self.hiddenLayers]) + self.logRegressionLayer.params
         self.architecture = architecture
 

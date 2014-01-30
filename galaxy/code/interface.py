@@ -41,14 +41,14 @@ class NNTrainer():
         self.n_train_batches = n_train_batches
         self.label_size = self.labels.shape[1]
         self.training_steps = 1000
-        self.learning_rate = 0.6
+        self.learning_rate = 1.0
 
         # Declare Theano symbolic variables (x -> inputs, y-> labels)
         self.x = T.matrix("x")
         self.y = T.matrix("y")
  
         #for first time only
-        architecture = [self.feature_size, 500, self.label_size]
+        architecture = [self.feature_size, 100, 100, self.label_size]
         params = None
        
         print "... load model"

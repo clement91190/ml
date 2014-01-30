@@ -21,6 +21,7 @@ class LogisticRegression():
             self.b = theano.shared(b)
         #self.n_batch = x.shape[0]
         activation = T.nnet.sigmoid
+        #activation = T.tanh
         #self.p_1 = 1 / (1 + T.exp(-T.dot(x, self.W) - T.dot(np.ones((self.n_batch, 1)), self.b)))
         self.p_1 = activation(T.dot(x, self.W) + T.dot(T.ones_like(T.eye(x.shape[0], 1)), self.b))
 
@@ -58,15 +59,17 @@ class LogisticRegressionTester():
         self.y = T.matrix("y")
         self.test_set = test_set
         self.batch_size, self.feature_size = self.test_set.shape
+        self.label_size = 0
      
-        self.regressor = LogisticRegression(self.x, self.y, self.feature_size, 1)
-        self.load_model()
+        W,b = self.load_model()
+        self.regressor = LogisticRegression(self.x, self.y, self.feature_size, self.label_size, W, b)
         self.predict = theano.function(inputs=[self.x], outputs=self.regressor.p_1)
 
     def load_model(self, fich="model.tkl"):
         with open(fich) as f:
             W, b = pickle.load(f)
-            self.regressor.reinit(self.x, self.y, W, b)
+            return (W,b)
+            #self.regressor.reinit(self.x, self.y, W, b)
        
     def test(self):
         return self.predict(self.test_set)

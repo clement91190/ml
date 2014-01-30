@@ -1,5 +1,6 @@
 import cPickle
-from logistic_reg import LogisticRegressionTester
+#from logistic_reg import LogisticRegressionTester
+from interface import NNTester
 
 
 def load_dataset():
@@ -10,7 +11,9 @@ def load_dataset():
 
 def get_results():
     dataset, index = load_dataset() 
-    tester = LogisticRegressionTester(dataset)
+    #tester = LogisticRegressionTester(dataset)
+    tester = NNTester(dataset)
+
     results = tester.test()
     return results, index
 

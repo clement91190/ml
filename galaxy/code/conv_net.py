@@ -1,34 +1,33 @@
 import os
 import sys
 import time
-import numpy
+import numpy as np
 import theano
 import theano.tensor as T
 from theano.tensor.signal import downsample
 from theano.tensor.nnet import conv
-
-from logistic_sgd import LogisticRegression, load_data
-from mlp import HiddenLayer
+import math
+from multi_perceptron import MLP
 
 
 class LeNetConvPoolLayer(object):
     """Pool Layer of a convolutional network """
 
     def __init__(self, input, filter_shape, image_shape, poolsize=(2, 2), W=None, b=None):
-        rng = numpy.random.RandomState(1234)
+        rng = np.random.RandomState(1234)
         assert image_shape[1] == filter_shape[1]
         self.input = input
 
-        fan_in = numpy.prod(filter_shape[1:])
-        fan_out = (filter_shape[0] * numpy.prod(filter_shape[2:]) /
-                   numpy.prod(poolsize))
+        fan_in = np.prod(filter_shape[1:])
+        fan_out = (filter_shape[0] * np.prod(filter_shape[2:]) /
+                   np.prod(poolsize))
 
         if W is None:
-            W_bound = numpy.sqrt(6. / (fan_in + fan_out))
-            W = numpy.asarray(
+            W_bound = np.sqrt(6. / (fan_in + fan_out))
+            W = np.asarray(
                 rng.uniform(low=-W_bound, high=W_bound, size=filter_shape),
                 dtype=theano.config.floatX)
-            b = numpy.zeros((filter_shape[0],), dtype=theano.config.floatX)
+            b = np.zeros((filter_shape[0],), dtype=theano.config.floatX)
         
         self.W = theano.shared(W)
         self.b = theano.shared(b)
@@ -42,29 +41,47 @@ class LeNetConvPoolLayer(object):
 
 
 class Lenet5():
-    def __init__(self, input, y, architecture, params=None):
-        self.architecture = architecture
-        self.nkerns, self.mlp_arch = architecture
-        self.batch_size, self.n_in = input.shape[0]
-        self.image_width = T.sqrt(self.n_in)
-        self.layer0_input = input.reshape((self.batch_size, 1, self.image_width, self.image_width))
+    def __init__(self, input, y, batch_size, architecture, params=None):
+        #TODO record architecture
+        if params is None:
+            self.mlp_params = None
+            W0, b0 = None, None
+            W1, b1 = None, None
+        else:
+            W0, b0 = params[0:2]
+            W1, b1 = params[2:4]
+            self.mlp_params = params[4:]
+
+        self.n_in, self.nkerns, self.mlp_arch = architecture
+        self.image_width = int(math.sqrt(self.n_in))
+        print self.image_width
+    
+        #TODO find a way of reshaping without giving the batch size !
+
+        self.layer0_input = T.reshape(input, (-1, 1, self.image_width, self.image_width))
 
         self.layer0 = LeNetConvPoolLayer(input=self.layer0_input,
-                image_shape=(self.batch_size, 1, self.image_width, self.image_width),
-                filter_shape=(self.nkerns[0], 1, 5, 5), poolsize=(2, 2))
+                image_shape=(None, 1, self.image_width, self.image_width),
+                filter_shape=(self.nkerns[0], 1, 5, 5), poolsize=(2, 2),
+                W=W0, b=b0)
 
         self.layer1 = LeNetConvPoolLayer(input=self.layer0.output,
-                image_shape=(self.batch_size, self.nkerns[0], 12, 12),
-                filter_shape=(self.nkerns[1], self.nkerns[0], 5, 5), poolsize=(2, 2))
+                image_shape=(None, self.nkerns[0], 16, 16),
+                filter_shape=(self.nkerns[1], self.nkerns[0], 5, 5), poolsize=(2, 2),
+                W=W1, b=b1)
 
-        self.layer2_input = self.layer1.output.flatten(2)
-        #TODO REPLACE THIS WITH MLP
-        self.layer2 = HiddenLayer(input=self.layer2_input, n_in=self.nkerns[1] * 4 * 4,
-                            n_out=500)
+        self.mlp_input = self.layer1.output.flatten(2)
+        #mlp_in = self.nkerns[1] * 4 * 4
+        self.mlp = MLP(input=self.mlp_input, y=y, architecture=self.mlp_arch, params=self.mlp_params)
 
-        self.layer3 = LogisticRegression(input=self.layer2.output, n_in=500, n_out=10)
+        self.cross_err = self.mlp.cross_err
 
-        self.cost = self.layer3.negative_log_likelihood(y)
+        self.least_square = self.mlp.least_square
+        
+        self.proba = self.mlp.proba
+
+        self.params = self.layer0.params + self.layer1.params + self.mlp.params
+        self.architecture = architecture
 
  
 def evaluate_lenet5(learning_rate=0.1, n_epochs=200,

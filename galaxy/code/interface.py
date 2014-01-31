@@ -2,7 +2,8 @@ import cPickle
 import os
 import sys
 import time
-from code.multi_perceptron import MLP
+#from code.multi_perceptron import MLP
+from code.conv_net import Lenet5
 
 import numpy as np
 
@@ -19,7 +20,8 @@ class NNTester():
         self.batch_size, self.feature_size = self.test_set.shape
 
         params, architecture = self.load_model()
-        self.neural_net = MLP(self.x, self.y, architecture, params)
+        #self.neural_net = MLP(self.x, self.y, architecture, params)
+        self.neural_net = Lenet5(self.x, self.y, architecture, params)
         self.predict = theano.function(inputs=[self.x], outputs=self.neural_net.proba)
 
     def load_model(self, fich="model_nn.tkl"):
@@ -37,7 +39,7 @@ class NNTrainer():
         self.inputs, self.labels = datasets[0]  # inputs, labels from train_set
         self.datasets = datasets
         self.N, self.feature_size = self.inputs.shape
-        self.batch_size = self.N / n_train_batches
+        self.batch_size = int(self.N / n_train_batches)
         self.n_train_batches = n_train_batches
         self.label_size = self.labels.shape[1]
         self.training_steps = 1000
@@ -48,14 +50,17 @@ class NNTrainer():
         self.y = T.matrix("y")
  
         #for first time only
-        architecture = [self.feature_size, 100, 100, self.label_size]
+        nkerns = [20, 30]
+        mlp_in = nkerns[1] * 6 * 6
+        mlp_architecture = [mlp_in, 100, 100, self.label_size]
+        architecture = (self.feature_size, nkerns, mlp_architecture)
         params = None
        
         print "... load model"
-        params, architecture = self.load_model()
+        #params, architecture = self.load_model()
         print architecture
 
-        self.neural_net = MLP(self.x, self.y, architecture, params)
+        self.neural_net = Lenet5(self.x, self.y, self.batch_size, architecture, params)
         self.cross_error = theano.function(inputs=[self.x, self.y], outputs=self.neural_net.cross_err)
 
         gparams = []

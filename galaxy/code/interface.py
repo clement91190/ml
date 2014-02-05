@@ -46,7 +46,7 @@ class NNTrainer():
         self.n_train_batches = n_train_batches
         self.label_size = self.labels.shape[1]
         self.training_steps = 1000
-        self.learning_rate = 1.5
+        self.learning_rate = 0.3
 
         # Declare Theano symbolic variables (x -> inputs, y-> labels)
         self.x = T.matrix("x")
@@ -57,12 +57,12 @@ class NNTrainer():
         mlp_in = nkerns[1] * 4 * 4
         mlp_architecture = [mlp_in, 200, 200, 150, self.label_size]
         architecture = (self.feature_size, nkerns, mlp_architecture)
-        architecture = [self.feature_size, 100, 100, 100, self.label_size]
+        architecture = [self.feature_size,100, 100, 100, self.label_size]
         params = None
        
         print "... load model"
         params, architecture = self.load_model()
-        print architecture
+        print params, architecture
 
         self.neural_net = MLP(self.x, self.y, architecture, params)
         #self.neural_net = Lenet5(self.x, self.y, architecture, params)
@@ -134,13 +134,15 @@ class NNTrainer():
                 if (iter + 1) % validation_frequency == 0:
                     # compute zero-one loss on validation set
                     validation_losses = [self.test(self.datasets[1][0], self.datasets[1][1])]
+                    train_losses = [self.test(self.inputs[0:self.batch_size], self.labels[0:self.batch_size])]
                     this_validation_loss = np.mean(validation_losses)
+                    this_train_loss = np.mean(train_losses)
 
-                    print('epoch %i, minibatch %i/%i, validation error %f %%' % \
+                    print('epoch %i, minibatch %i/%i, validation error %f, train_error %f %% ' % \
                         (epoch, minibatch_index + 1, self.n_train_batches,
-                        this_validation_loss * 100.))
-
+                        this_validation_loss * 100., this_train_loss * 100.))
                     # if we got the best validation score until now
+
                     if this_validation_loss < best_validation_loss:
                         #improve patience if loss improvement is good enough
                         if this_validation_loss < best_validation_loss *  \
@@ -195,7 +197,7 @@ def main():
    # validate = (rng.randn(N, feats), 0.5 * np.ones((N, n_out)))
    # test = (rng.randn(N, feats), 0.5 * np.ones((N, n_out)))
     D = (train, validate, test)
-    trainer = NNTrainer(D, n_train_batches=200)
+    trainer = NNTrainer(D, n_train_batches=50)
     trainer.train_loop()
     #print trainer.predict(D[0])
     print trainer.neural_net.params

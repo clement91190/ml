@@ -41,6 +41,7 @@ class MLP(object):
         n_out = architecture[-1]
         n_hiddens = architecture[:-2]
         n_hidden_layers = len(n_hiddens)
+        print " n hidden layers ", n_hidden_layers
         if params is None:
             Wl, bl = None, None
             hidden_params = []

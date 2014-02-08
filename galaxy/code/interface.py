@@ -4,6 +4,7 @@ import sys
 import time
 from code.multi_perceptron import MLP
 from code.conv_net import Lenet5
+from code.proba_model import Simplifier 
 
 import numpy as np
 
@@ -46,7 +47,7 @@ class NNTrainer():
         self.n_train_batches = n_train_batches
         self.label_size = self.labels.shape[1]
         self.training_steps = 1000
-        self.learning_rate = 0.3
+        self.learning_rate = 0.8
 
         # Declare Theano symbolic variables (x -> inputs, y-> labels)
         self.x = T.matrix("x")
@@ -55,17 +56,18 @@ class NNTrainer():
         #for first time only
         nkerns = [20, 30]
         mlp_in = nkerns[1] * 4 * 4
-        mlp_architecture = [mlp_in, 200, 200, 150, self.label_size]
+        mlp_architecture = [mlp_in, 100, 100, self.label_size]
         architecture = (self.feature_size, nkerns, mlp_architecture)
-        architecture = [self.feature_size,100, 100, 100, self.label_size]
+        #architecture = [self.feature_size, 150, 100, 80, self.label_size]
         params = None
        
         print "... load model"
         params, architecture = self.load_model()
-        print params, architecture
+        print architecture
 
-        self.neural_net = MLP(self.x, self.y, architecture, params)
-        #self.neural_net = Lenet5(self.x, self.y, architecture, params)
+        self.feature_size, nkerns, mlp_architecture = architecture
+        #self.neural_net = MLP(self.x, self.y, architecture, params)
+        self.neural_net = Lenet5(self.x, self.y, architecture, params)
         self.cross_error = theano.function(inputs=[self.x, self.y], outputs=self.neural_net.cross_err)
 
         gparams = []
@@ -85,6 +87,7 @@ class NNTrainer():
         self.predict = theano.function(inputs=[self.x], outputs=self.neural_net.proba)
 
         self.test = theano.function(inputs=[self.x, self.y],outputs=self.neural_net.least_square)
+        self.simplifier = Simplifier()
     
     def load_model(self, fich="model_100_.tkl"):
         print "loading previous model"
@@ -95,6 +98,16 @@ class NNTrainer():
     def save_model(self):
         with open("model_100_.tkl", 'w') as fich:
             cPickle.dump(([p.get_value() for p in self.neural_net.params], self.neural_net.architecture), fich)
+
+    def real_error(self, batch_x, batch_label):
+        err = self.test(batch_x, batch_label)
+        batch_y = self.predict(batch_x)
+        batch_modif = self.simplifier.modify_batch(batch_y)
+        sq = np.square(batch_modif - batch_label)
+        print "difference :"
+        res = np.sqrt(sq.mean()) 
+        print res - err
+        return res
 
     def train_loop(self):
         
@@ -154,6 +167,7 @@ class NNTrainer():
 
                         test_losses = [self.test(self.datasets[2][0], self.datasets[2][1])]
                         test_score = np.mean(test_losses)
+                        #test_score = self.real_error(self.datasets[2][0], self.datasets[2][1])
 
                         print(('     epoch %i, minibatch %i/%i, test error of best'
                         ' model %f %%') %

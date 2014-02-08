@@ -1,3 +1,4 @@
+# -*-coding:Utf-8 -*
 from flask import request
 from optim_server import app
 from optim_server.db import models
@@ -9,7 +10,8 @@ import json
 @app.route('/get_params')
 def get_params():
     try:
-        obj = models.ParamInstance.objects(assigned=False, done=False).order_by('id').get()
+        obj = models.ParamInstance.objects(assigned=False, done=False).order_by('id')
+        obj = obj[0]
         obj.assigned = True
         obj.save()
         return obj.to_json()
@@ -35,8 +37,7 @@ def post_results():
 def post_params():
     req_json = request.get_json()
     print req_json
-
-    data= json.loads(req_json)
+    data = req_json
     params = data['params']
     print params
     try:
@@ -55,4 +56,4 @@ def get_results():
     id = request.args.get('id')
     obj = models.ParamInstance.objects.get(id=id)
     #return obj.to_json()
-    return json.dumps(('res', obj.score))
+    return json.dumps({'res': obj.score})

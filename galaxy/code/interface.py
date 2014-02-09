@@ -47,27 +47,27 @@ class NNTrainer():
         self.n_train_batches = n_train_batches
         self.label_size = self.labels.shape[1]
         self.training_steps = 1000
-        self.learning_rate = 0.8
+        self.learning_rate = 0.9
 
         # Declare Theano symbolic variables (x -> inputs, y-> labels)
         self.x = T.matrix("x")
         self.y = T.matrix("y")
  
         #for first time only
-        nkerns = [20, 30]
-        mlp_in = nkerns[1] * 4 * 4
-        mlp_architecture = [mlp_in, 100, 100, self.label_size]
-        architecture = (self.feature_size, nkerns, mlp_architecture)
-        #architecture = [self.feature_size, 150, 100, 80, self.label_size]
+        #nkerns = [20, 30]
+        #mlp_in = nkerns[1] * 4 * 4
+        #mlp_architecture = [mlp_in, 100, 100, self.label_size]
+        #architecture = (self.feature_size, nkerns, mlp_architecture)
+        architecture = [self.feature_size, 100, 100, self.label_size]
         params = None
        
         print "... load model"
         params, architecture = self.load_model()
         print architecture
 
-        self.feature_size, nkerns, mlp_architecture = architecture
-        #self.neural_net = MLP(self.x, self.y, architecture, params)
-        self.neural_net = Lenet5(self.x, self.y, architecture, params)
+        #self.feature_size, nkerns, mlp_architecture = architecture
+        self.neural_net = MLP(self.x, self.y, architecture, params)
+        #self.neural_net = Lenet5(self.x, self.y, architecture, params)
         self.cross_error = theano.function(inputs=[self.x, self.y], outputs=self.neural_net.cross_err)
 
         gparams = []
@@ -196,7 +196,7 @@ class NNTrainer():
 
 def load_data():
     print '... loading data'
-    dataset = 'data/training_set_v1/training.pkl'
+    dataset = 'data/training_set_v1/training_no_rotation.pkl'
     # Load the dataset
     with open(dataset, 'rb') as f:
         train_set, valid_set, test_set = cPickle.load(f)

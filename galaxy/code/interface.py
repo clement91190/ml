@@ -47,7 +47,7 @@ class NNTrainer():
         self.n_train_batches = n_train_batches
         self.label_size = self.labels.shape[1]
         self.training_steps = 1000
-        self.learning_rate = 0.9
+        self.learning_rate = 0.35
 
         # Declare Theano symbolic variables (x -> inputs, y-> labels)
         self.x = T.matrix("x")
@@ -58,7 +58,7 @@ class NNTrainer():
         #mlp_in = nkerns[1] * 4 * 4
         #mlp_architecture = [mlp_in, 100, 100, self.label_size]
         #architecture = (self.feature_size, nkerns, mlp_architecture)
-        architecture = [self.feature_size, 100, 100, self.label_size]
+        architecture = [self.feature_size, 200,  100, 100, self.label_size]
         params = None
        
         print "... load model"
@@ -196,7 +196,8 @@ class NNTrainer():
 
 def load_data():
     print '... loading data'
-    dataset = 'data/training_set_v1/training_no_rotation.pkl'
+    #dataset = 'data/training_set_v1/training_no_rotation.pkl'
+    dataset = 'data/training_set_v1/training_hog.pkl'
     # Load the dataset
     with open(dataset, 'rb') as f:
         train_set, valid_set, test_set = cPickle.load(f)

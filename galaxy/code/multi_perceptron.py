@@ -37,7 +37,7 @@ class MLP(object):
     def __init__(self, input, y, architecture, params=None):
 #TODO change this for any architecture.
         self.L1_reg = 0.00
-        self.L2_reg = 0.0001
+        self.L2_reg = 0.00005
         n_out = architecture[-1]
         n_hiddens = architecture[:-2]
         n_hidden_layers = len(n_hiddens)
@@ -82,7 +82,7 @@ class MLP(object):
 
         self.L2_sqr = sum_W_hidden2 + (self.logRegressionLayer.W ** 2).sum()
 
-        self.cross_err = self.logRegressionLayer.cross_err # + self.L1_reg * self.L1 + self.L2_reg * self.L2_sqr
+        self.cross_err = self.logRegressionLayer.cross_err + self.L1_reg * self.L1 + self.L2_reg * self.L2_sqr
 
         self.least_square = self.logRegressionLayer.least_square
         

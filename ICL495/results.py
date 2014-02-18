@@ -78,9 +78,50 @@ def make_sym(A):
     return 0.5 * np.matrix(A + A.transpose())
 
 
-def get_U_for_NPP(X):
-    pass
+def compute_graph_matrix(X, distance, heat_func, N=5, temp = 5.0):
+    S = np.zeros((X.shape[0], X.shape[0]))
+    print S.shape
+    for i, x1_vect in enumerate(X):
+        mins = []
+        vals = []
+        for j, x2_vect in enumerate(X):
+            if len(mins) < N:
+                mins.append(j)
+                vals.append(distance(x1_vect, x2_vect))
+                change = True
+            else:
+                d = distance(x1_vect, x2_vect)
+                if d < vals[0]:
+                    mins[0] = j
+                    vals[0] = d
+                    change = True 
+            if change:
+                # simultaneous sorting
+                vals, mins = [list(t) for t in zip(*sorted(zip(vals, mins)))]
+               
+        for j, d in zip(mins, vals):
+            S[i, j] = heat_func(d, temp)
+    return S
+            
 
+def get_D(S):
+    return np.diag(S.sum(1))
+    
+
+
+def get_Y_for_NPP(X, compos=20):
+    """ in this case, send the training and testing at the same time """
+    euclid_sqr = lambda x1, x2 : np.mean(np.square(x1 - x2))
+    heat_func = lambda d, t : np.exp(-d/t)
+    print "... compute graph matrix"
+    S = compute_graph_matrix(X, distance=euclid_sqr, heat_func=heat_func)
+    D = get_D(S)
+    print S.shape , D.shape
+    lamb, V = eig(inv(D - S) * D)
+    ind,_  = max(enumerate(lamb > 0.), key=lambda (i, bol): (bol, i))
+    Y = V[ind:ind-compos:-1]
+    print Y.shape
+    return Y.transpose()
 
 def get_U_for_fast_ICA(X):
     pass
@@ -134,17 +175,23 @@ def prepare_data(train_idx, (train, fea, gnd)):
     fea_test = np.array([fea[i - 1] for i in test_idx])
     gnd_test = np.array([gnd[i - 1] for i in test_idx]).flatten()
         
-    #U = get_U_for_PCA(fea_train, 30)
+    #U = get_U_for_PCA(fea_train, 20)
     #U = get_U_for_whitened_PCA(fea_train, 20)
-    U = get_U_for_LDA(fea_train, gnd_train, 50)
+    #U = get_U_for_LDA(fea_train, gnd_train, 50)
     #raw_input()
-    print "shape of U :", U.shape
+    #print "shape of U :", U.shape
     #print fea_train.shape
     #print fea_test.shape
 
-    fea_train_red = np.dot(center(fea_train), U)
-    fea_test_red = np.dot(center(fea_test), U)
+    #fea_train_red = np.dot(center(fea_train), U)
+    #fea_test_red = np.dot(center(fea_test), U)
+    #print "size", fea_train_red.shape
     
+    #fea_train_red = get_Y_for_NPP(np.concatenate((fea_train, fea_test), 0))
+    fea_train_red = get_Y_for_NPP(fea_train)
+    fea_test_red = get_Y_for_NPP(fea_test)
+    print fea_train_red.shape
+    raw_input()
     #fea_train_red = fea_train
     #fea_test_red = fea_test
     #print fea_train_red

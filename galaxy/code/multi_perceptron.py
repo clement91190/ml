@@ -37,7 +37,7 @@ class MLP(object):
     def __init__(self, input, y, architecture, params=None):
 #TODO change this for any architecture.
         self.L1_reg = 0.00
-        self.L2_reg = 0.00005
+        self.L2_reg = 0.0  #  0005
         n_out = architecture[-1]
         n_hiddens = architecture[:-2]
         n_hidden_layers = len(n_hiddens)

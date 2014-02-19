@@ -1,7 +1,7 @@
 from scipy.io import loadmat
 from sklearn import neighbors
 import numpy as np
-from numpy.linalg import eig, inv 
+from numpy.linalg import eig, inv, matrix_rank 
 import matplotlib.pyplot as plt
 
 
@@ -20,10 +20,14 @@ def PCA(X, compos):
     X = center(X)
     X = np.matrix(X)
     cov = np.dot(X, X.transpose())
+    compos = min(compos, matrix_rank(cov))  # keep only useful info.
     #print cov.shape
-    lamb, V = eig(cov)  # perform eigenanalyses (sorted by eigen values)
+    lamb, V = eig(cov)
+    ind = (-lamb).argsort()
+    ind = ind[:compos]
+    #lamb, V = zip(*sorted(zip(lamb, list(V)), reverse=True))  # sort... bug in eig function ?  
     print "loss : {} %".format(100.0 * (1 - np.sum(lamb[:compos]) / np.sum(lamb)))
-    return lamb, V
+    return lamb[ind], np.matrix(V[ind]).transpose()
 
 
 def get_U_for_PCA(X, compos=20):
@@ -35,14 +39,15 @@ def get_U_for_PCA(X, compos=20):
     #print (X.transpose() - np.dot(U, np.dot(X, U))).mean()
 
     #raw_input()
-    return U[:, :compos]
+    #return U[:, :compos]
+    return U
 
 
 def get_U_for_whitened_PCA(X, compos=10):
     lamb, V = PCA(X, compos) 
     temp = np.diag(1.0 / lamb) 
     U = X.transpose() * V * temp 
-    return U[:, :compos]
+    return U
 
 
 def get_cov_sample(X):
@@ -105,23 +110,38 @@ def compute_graph_matrix(X, distance, heat_func, N=5, temp = 5.0):
             
 
 def get_D(S):
-    return np.diag(S.sum(1))
+    D = np.diag(S.sum(1))
+    #print "rang, shape", matrix_rank(D), D.shape
+    return D
     
 
-
-def get_Y_for_NPP(X, compos=20):
+def get_U_for_NPP(X, compos=50):
     """ in this case, send the training and testing at the same time """
-    euclid_sqr = lambda x1, x2 : np.mean(np.square(x1 - x2))
+   
+    N, F = X.shape
+    print "...PCA to go to N-C dim space"
+    M = N 
+    U = get_U_for_PCA(X, M)  # N-C ? 
+    Xred = np.dot(X, U)
+
+    euclid_sqr = lambda x1, x2: np.mean(np.square(x1 - x2))
     heat_func = lambda d, t : np.exp(-d/t)
     print "... compute graph matrix"
-    S = compute_graph_matrix(X, distance=euclid_sqr, heat_func=heat_func)
+    S = compute_graph_matrix(Xred, distance=euclid_sqr, heat_func=heat_func)
     D = get_D(S)
-    print S.shape , D.shape
-    lamb, V = eig(inv(D - S) * D)
-    ind,_  = max(enumerate(lamb > 0.), key=lambda (i, bol): (bol, i))
-    Y = V[ind:ind-compos:-1]
-    print Y.shape
-    return Y.transpose()
+    print S.shape, D.shape
+    Xred = np.matrix(Xred)
+    print "rank of Xred : ", matrix_rank(Xred)
+    print "checking shapes ..."
+    print Xred.shape, D.shape
+    print " checking singular ? ", matrix_rank(Xred.transpose() * D * Xred)
+    lamb, V = eig(inv(Xred.transpose() * (D) * Xred) * Xred.transpose() * (D - S) * Xred)
+    #ind, _ = max(enumerate(lamb > 0.), key=lambda (i, bol): (bol, i))
+    ind = lamb.argsort()
+    W = V[ind[:compos]]
+    print W.shape
+    return np.dot(U, W.tranpose())
+
 
 def get_U_for_fast_ICA(X):
     pass
@@ -154,7 +174,6 @@ def test_features(fea_train_red, fea_test_red, gnd_train, gnd_test):
         #prediction = clf.predict(fea_train_red)
         #print "predshape",  prediction.shape
         #print "gnd_shape",  gnd_test.shape
-        # raw_input()
         #print prediction - gnd_test == 0
         #print (prediction - gnd_test == 0).shape
         correct.append(np.sum(prediction - gnd_test == 0))
@@ -176,22 +195,19 @@ def prepare_data(train_idx, (train, fea, gnd)):
     gnd_test = np.array([gnd[i - 1] for i in test_idx]).flatten()
         
     #U = get_U_for_PCA(fea_train, 20)
-    #U = get_U_for_whitened_PCA(fea_train, 20)
+    #U = get_U_for_NPP(fea_train, 20)
+    U = get_U_for_whitened_PCA(fea_train, 20)
     #U = get_U_for_LDA(fea_train, gnd_train, 50)
     #raw_input()
-    #print "shape of U :", U.shape
-    #print fea_train.shape
-    #print fea_test.shape
+    print "shape of U :", U.shape
+    print fea_train.shape
+    print fea_test.shape
 
-    #fea_train_red = np.dot(center(fea_train), U)
-    #fea_test_red = np.dot(center(fea_test), U)
+    fea_train_red = np.dot(center(fea_train), U)
+    fea_test_red = np.dot(center(fea_test), U)
     #print "size", fea_train_red.shape
     
-    #fea_train_red = get_Y_for_NPP(np.concatenate((fea_train, fea_test), 0))
-    fea_train_red = get_Y_for_NPP(fea_train)
-    fea_test_red = get_Y_for_NPP(fea_test)
     print fea_train_red.shape
-    raw_input()
     #fea_train_red = fea_train
     #fea_test_red = fea_test
     #print fea_train_red

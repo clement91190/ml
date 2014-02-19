@@ -25,9 +25,8 @@ def PCA(X, compos):
     lamb, V = eig(cov)
     ind = (-lamb).argsort()
     ind = ind[:compos]
-    #lamb, V = zip(*sorted(zip(lamb, list(V)), reverse=True))  # sort... bug in eig function ?  
-    print "loss : {} %".format(100.0 * (1 - np.sum(lamb[:compos]) / np.sum(lamb)))
-    return lamb[ind], np.matrix(V[ind]).transpose()
+    print "loss : {} %".format(100.0 * (1 - np.sum(lamb[ind]) / np.sum(lamb)))
+    return lamb[ind], np.matrix(V[:, ind])
 
 
 def get_U_for_PCA(X, compos=20):

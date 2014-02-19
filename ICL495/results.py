@@ -136,16 +136,60 @@ def get_U_for_NPP(X, compos=50):
     print " checking singular ? ", matrix_rank(Xred.transpose() * D * Xred)
     lamb, V = eig(inv(Xred.transpose() * (D) * Xred) * Xred.transpose() * (D - S) * Xred)
     #ind, _ = max(enumerate(lamb > 0.), key=lambda (i, bol): (bol, i))
+    print V.shape
     ind = lamb.argsort()
-    W = V[ind[:compos]]
+    W = V[:, ind[:compos]]
     print W.shape
-    return np.dot(U, W.tranpose())
+    #raw_input()
+    return np.dot(U, W)
 
 
-def get_U_for_fast_ICA(X):
-    pass
+def decorellate(w, W, j):
+    """ assuming that W is orthogonal, we delete the projection of w on this basis
+    to prevent all the component to converge toward the same value """
+    w -= np.dot(np.dot(w, W[:j].T), W[:j])
+    return w
+
+def get_U_for_fast_ICA(X, compos=20):
+    N, F = X.shape
+    print "...PCA to go to N-C dim space"
+    M = N 
+    U = get_U_for_whitened_PCA(X, M)  # N-C ? 
+    Xred = np.dot(X, U)
+    M = Xred.shape[1]
+
+    Xred = Xred.transpose()  # to have the same notation than the paper
+    g = np.tanh
+    g_der = lambda y: np.ones(y.shape) - np.square(np.tanh(y))
+    func = lambda y: (g(y), g_der(y))
 
 
+    W = np.zeros((M, M))
+    w_init = np.random.random((M, M)) #init with random calues
+    
+    for j in range(M):
+        w = w_init[j, :].copy()
+        #print w.shape
+        w/= np.sqrt((w ** 2).sum())
+        w = np.matrix(w).T
+        #w /= np.mean(w)
+        #print w.shape
+        converged = False
+        while not converged:
+            gy, gdy = func(np.dot(w.T, Xred))
+            wp = np.matrix((np.array(Xred) * np.array(gy)).mean(axis=1)).T  - np.array(gdy.mean()) * np.array(w)
+            decorellate(wp.T, W, j)  # gramshmidt like orhogonalization
+            wp /= np.sqrt((np.array(wp) ** 2).sum())
+            eps = np.abs(np.abs((wp.T * w).sum()) - 1)
+            #print eps
+            converged = eps <  0.0001
+            w = wp
+        W[j, :] = w.reshape(M)
+    
+    Mat = np.dot(U, W.T)
+    print Mat.shape
+    return Mat[:, :compos]
+   
 def get_U_for_id(size=64):
     return np.eye(size * size)
 
@@ -194,8 +238,9 @@ def prepare_data(train_idx, (train, fea, gnd)):
     gnd_test = np.array([gnd[i - 1] for i in test_idx]).flatten()
         
     #U = get_U_for_PCA(fea_train, 20)
-    #U = get_U_for_NPP(fea_train, 20)
-    U = get_U_for_whitened_PCA(fea_train, 20)
+    #U = get_U_for_NPP(fea_train, 300)
+    U = get_U_for_fast_ICA(fea_train, 40)
+    #U = get_U_for_whitened_PCA(fea_train, 20)
     #U = get_U_for_LDA(fea_train, gnd_train, 50)
     #raw_input()
     print "shape of U :", U.shape

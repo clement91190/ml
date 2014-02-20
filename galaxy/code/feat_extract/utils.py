@@ -43,7 +43,8 @@ def load_data(filter, set='train', max=1000000):
     else:
         label_path = '../../data/original_data/all_ones_benchmark.csv'
     pics = []
-    labels_or_ids = []
+    labels = []
+    ids = []
     print "... loading " + set
     with open(label_path) as label_f:
         reader = csv.reader(label_f)
@@ -56,15 +57,14 @@ def load_data(filter, set='train', max=1000000):
                 img = load_img_and_filter(row[0], '../../data/original_data/' + set + 'ing_set/img/', filter)
                 pics.append(img)
                 if set == 'train':
-                    labels_or_ids.append([float(v) for v in row[1:]])
-                else:
-                    labels_or_ids.append(row[0])
+                    labels.append([float(v) for v in row[1:]])
+                ids.append(row[0])
     pics = np.array(pics)
     if set == 'train':
-        total_training_y = np.array(labels_or_ids, dtype='float32')
-        return (pics, total_training_y)
+        total_training_y = np.array(labels, dtype='float32')
+        return (pics, total_training_y, ids)
     else:
-        return (pics, labels_or_ids)
+        return (pics, ids)
 
 
 def save_training(method, rval):
@@ -87,15 +87,15 @@ def save_testing(method, test_features):
         cPickle.dump(test_features, f)
 
 
-def prepare_train_valid_test((total_x, total_y), tr_size=60, val_size=20):
+def prepare_train_valid_test((total_x, total_y, total_ids), tr_size=60, val_size=20):
     """ cut the training set in train, valid, test """
     print "preparing learning datasets"
     last_train = tr_size * total_x.shape[0] / 100
     last_valid = last_train + val_size * total_x.shape[0] / 100
-    train_x, train_y = total_x[:last_train], total_y[:last_train]
-    valid_x, valid_y = total_x[last_train:last_valid], total_y[last_train:last_valid]
-    test_x, test_y = total_x[last_valid:], total_y[last_valid:]
-    rval = [(train_x, train_y), (valid_x, valid_y), (test_x, test_y)]
+    train_x, train_y, train_ids = total_x[:last_train], total_y[:last_train], total_ids[:last_train] 
+    valid_x, valid_y, valid_ids = total_x[last_train:last_valid], total_y[last_train:last_valid], total_ids[last_train:last_valid]
+    test_x, test_y, test_ids = total_x[last_valid:], total_y[last_valid:], total_ids[last_valid:]
+    rval = [(train_x, train_y, train_ids), (valid_x, valid_y, valid_ids), (test_x, test_y, test_ids)]
     return rval
 
 

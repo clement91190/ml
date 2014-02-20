@@ -1,13 +1,10 @@
-import os
-import sys
-import time
 import numpy as np
 import theano
 import theano.tensor as T
 from theano.tensor.signal import downsample
 from theano.tensor.nnet import conv
 import math
-from multi_perceptron import MLP
+from code.nn.multi_perceptron import MLP
 
 
 class LeNetConvPoolLayer(object):

@@ -1,4 +1,4 @@
-from code.logistic_reg import LogisticRegression
+from code.nn.logistic_reg import LogisticRegression
 
 import numpy
 
@@ -72,17 +72,17 @@ class MLP(object):
             n_out=n_out,
             W=Wl, b=bl)
         
-        L1_sum = lambda W:abs(W).sum()
-        L2_sum = lambda W:abs(W ** 2).sum()
+        #L1_sum = lambda W:abs(W).sum()
+        #L2_sum = lambda W:abs(W ** 2).sum()
 
-        sum_W_hidden1 = reduce(lambda W1, W2: L1_sum(W1) + L1_sum(W2), [hidden.W for hidden in self.hiddenLayers]) 
-        sum_W_hidden2 = reduce(lambda W1, W2: L2_sum(W1) + L2_sum(W2), [hidden.W for hidden in self.hiddenLayers]) 
+        #sum_W_hidden1 = reduce(lambda W1, W2: L1_sum(W1) + L1_sum(W2), [hidden.W for hidden in self.hiddenLayers]) 
+        #sum_W_hidden2 = reduce(lambda W1, W2: L2_sum(W1) + L2_sum(W2), [hidden.W for hidden in self.hiddenLayers]) 
 
-        self.L1 = sum_W_hidden1 + abs(self.logRegressionLayer.W).sum()
+        #self.L1 = sum_W_hidden1 + abs(self.logRegressionLayer.W).sum()
 
-        self.L2_sqr = sum_W_hidden2 + (self.logRegressionLayer.W ** 2).sum()
+        #self.L2_sqr = sum_W_hidden2 + (self.logRegressionLayer.W ** 2).sum()
 
-        self.cross_err = self.logRegressionLayer.cross_err + self.L1_reg * self.L1 + self.L2_reg * self.L2_sqr
+        self.cross_err = self.logRegressionLayer.cross_err  # + self.L1_reg * self.L1 + self.L2_reg * self.L2_sqr
 
         self.least_square = self.logRegressionLayer.least_square
         

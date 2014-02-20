@@ -1,44 +1,37 @@
 import cPickle
-import os
-from NNTrainer import NNTrainer
-from utils import filters
+
+filters = {
+        'global' : range(37)}
 
 
-def select((tx, ty, ids), learn_type):
+def select(tx, ty, learn_type):
     """ select a subset of the labels to learn only some of them ..."""
-    if learn_type == "global":
-        return (tx, ty)
-    return (tx, ty[:, filters[learn_type]])
+    return (tx, ty[:,filters[learn_type]])
 
 
-def load_data(learn_type, method):
+def load_data():
     print '... loading data'
-    dataset = 'data/' + method + '/training_set.pkl'
+    #dataset = 'data/training_set_v1/training_no_rotation.pkl'
+    dataset = 'data/training_set_v1/training_hog.pkl'
     # Load the dataset
     with open(dataset, 'rb') as f:
         train_set, valid_set, test_set = cPickle.load(f)
-    train_set = select(train_set, learn_type)
-    valid_set = select(valid_set, learn_type)
-    test_set = select(test_set, learn_type)
     print "... done "   
     return (train_set, valid_set, test_set)
 
 
 def main():
     method = "method_gray"
-    learn_type = "q1"
-    try:
-        os.mkdir('data/' + method + '/' + learn_type)
-    except:
-        pass
-    learning_rate = 0.3
-    train, validate, test = load_data(learn_type, method)
+    learn_type = "global"
+    
+
+    train, validate, test = load_data()
    # N, feats, n_out = 100, 10, 2
    # train = (rng.randn(N, feats), 0.5 * np.ones((N, n_out)))
    # validate = (rng.randn(N, feats), 0.5 * np.ones((N, n_out)))
    # test = (rng.randn(N, feats), 0.5 * np.ones((N, n_out)))
     D = (train, validate, test)
-    trainer = NNTrainer(D, method, learn_type, load=False, learning_rate=learning_rate, n_train_batches=50)
+    trainer = NNTrainer(D, n_train_batches=50)
     trainer.train_loop()
     #print trainer.predict(D[0])
     print trainer.neural_net.params

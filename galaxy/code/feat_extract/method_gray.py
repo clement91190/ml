@@ -1,13 +1,14 @@
 """ simple feature extraction using black and white features"""
 from PIL import Image
 import numpy as np
+from utils import save_testing, save_training, load_data, prepare_train_valid_test
 
 
 class GrayExtractor():
-    def __init__(self, data):
-        (self.train, self.labels), (self.test, self.test_ids) = data
+    def __init__(self):
         self.pixelSize = 4
         self.img_size = 36
+        self.method_name = "method_gray"
 
     def convert_one_img(self, pic):
         pic = pic.convert('L')
@@ -23,10 +24,9 @@ class GrayExtractor():
                 vectors.append(round(pixel[y, i] / float(255), 3))
         return np.array(vectors, dtype='float32')
 
-    def produce_train(self):
-        train_feat = [self.convert_one_img(pic) for pic in self.train]
-        return np.array(train_feat)
+    def run(self):
+        filter = lambda img: self.convert_one_img(img)
+        save_training(self.method_name, prepare_train_valid_test(load_data(filter, set='train')))
+        save_testing(self.method_name, load_data(filter, set='test'))
 
-    def produce_test(self):
-        test_feat = [self.convert_one_img(pic) for pic in self.test]
-        return np.array(test_feat)
+

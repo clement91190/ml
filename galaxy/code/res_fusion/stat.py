@@ -4,8 +4,8 @@ import csv
 
 
 methods = ["method_gray"]
-learn_type = ["global", "q1", "q2", "q3", "q4"]
-
+learn_type = ["global", "q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8"]
+ind = [1, 4, 6, 8, 12, 16, 19, 26, 29, 32, 38]
 
 def load_est(method, learn_type, set="train"):
     """ load the file with the results """
@@ -57,7 +57,9 @@ def stat(est, sol):
     """ give estimations of the results. """
     res_per_colum = np.mean(np.abs(est - sol), 0)
     print " ... precision per answer..."
-    print res_per_colum
+    for i, j in enumerate(ind[:-1]):
+        tab = res_per_colum[j - 1:ind[i+1] - 1]
+        print "q", i+1, "  ->  ", (tab.mean(), tab)
 
 
 def produce_fusion_res(T):
@@ -72,7 +74,7 @@ def produce_fusion_res(T):
     for d in range(37):
         est_d = est[:, :, d]  # shape : (K, N, 37) -> est_d(K,N)
         res_d = np.dot(T[d], est_d)  # shape(1, N)
-    res.append(res_d)
+        res.append(res_d)
     res = np.array(res)  # shape(37, N)
     res = res.T
     save_results(res, ids)

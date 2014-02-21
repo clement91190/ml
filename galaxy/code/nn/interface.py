@@ -25,13 +25,13 @@ def load_data(learn_type, method):
 
 
 def main():
-    method = "method_gray"
-    learn_type = "q4"
+    method = "method_gray_center"
+    learn_type = "global"
     try:
         os.mkdir('data/' + method + '/' + learn_type)
     except:
         pass
-    learning_rate = 0.2
+    learning_rate = 3.0
     train, validate, test = load_data(learn_type, method)
    # N, feats, n_out = 100, 10, 2
    # train = (rng.randn(N, feats), 0.5 * np.ones((N, n_out)))

@@ -14,7 +14,7 @@ crop_dimensions = (small, small, small + img_size * pixelSize, small + img_size 
 def load_img(num, path):
     """ return the numpy array of the img """
     pic = Image.open(path + num + '.jpg')
-    pic = pic.crop(crop_dimensions)
+    #pic = pic.crop(crop_dimensions)
     #t = np.asarray(pic)
     return pic
 

@@ -41,7 +41,7 @@ def write(dataset, index, method, learn_type, set):
 
 def main():
     methods = ["method_gray"]
-    learn_types = ["global", "q1", "q2", "q3", "q4"]
+    learn_types = ["q4", "q5", "q6", "q7", "q8"]
     for m in methods:
         train_dataset, index = load_dataset(m, "train")
         for lt in learn_types:

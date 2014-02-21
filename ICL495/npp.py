@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.linalg import eig, inv  # , matrix_rank
-from pca import get_U_for_PCA
+from pca import get_U_for_PCA, get_U_for_whitened_PCA    
 
 
 def compute_graph_matrix(X, distance, heat_func, N=5, temp=5.0):
@@ -39,7 +39,8 @@ def get_U_for_NPP(X, compos=50):
     N, F = X.shape
     print "...PCA to go to N dim space"
     M = N
-    U = get_U_for_PCA(X, M)
+    #U = get_U_for_PCA(X, M)
+    U = get_U_for_whitened_PCA(X, M)
     Xred = np.dot(X, U)
 
     euclid_sqr = lambda x1, x2: np.mean(np.square(x1 - x2))

@@ -4,7 +4,7 @@ import csv
 
 
 methods = ["method_gray"]
-learn_type = ["q1", "q2"]
+learn_type = ["global", "q1", "q2"]
 
 
 def load_est(method, learn_type, set="train"):
@@ -19,10 +19,13 @@ def load_est(method, learn_type, set="train"):
                 est_k.append(np.array(row[1:], dtype='float32'))
                 ids.append(int(row[0]))
     est_k = np.array(est_k)  # shape(N, 37)
+    if set == "train":
+        N = est_k.shape[0]
+        est_k = est_k[int(N * 0.6): int(N * 0.8),:]  # keep only validation set
     return est_k, ids
 
 
-def load_sol():
+def load_sol(set="train"):
     sol_path = 'data/original_data/training_solutions_rev1.csv'
     sol = []
     with open(sol_path) as sol_f:
@@ -31,6 +34,9 @@ def load_sol():
             if i > 0:
                 sol.append(np.array(row[1:], dtype='float32'))
     sol = np.array(sol)  # shape(N, 37)
+    if set == "train":
+        N = sol.shape[0]
+        sol = sol[int(N * 0.6): int(N * 0.8),:]  # keep only validation set
     return sol
 
 
@@ -66,7 +72,7 @@ def produce_fusion_res(T):
     for d in range(37):
         est_d = est[:, :, d]  # shape : (K, N, 37) -> est_d(K,N)
         res_d = np.dot(T[d], est_d)  # shape(1, N)
-    res.append(res_d[0, :])
+    res.append(res_d)
     res = np.array(res)  # shape(37, N)
     res = res.T
     save_results(res, ids)
@@ -74,21 +80,26 @@ def produce_fusion_res(T):
 
 def results_on_subset(est, sol):
     """ shape(N, 37 ) """
+    
+    res = 0
+    #for e, s in zip(est, sol):
+    #    res + = np.sum(np.square(e - sol))
+    #return 
+    res = np.sqrt(np.mean(np.square(est - sol)))
 
-    res = np.mean(np.sqrt(np.sum(np.square(est) - np.square(sol), 1)))
-    print res
+    print "estimated error ", res
 
 
 def main():
     est = []
     print "... loading results on train ..."
-    sol = load_sol()
+    sol = load_sol("train")
     for m in methods:
         for lt in learn_type:
 #TODO add try
             est_k, ids = load_est(m, lt, "train")
             stat(est_k, sol)
-            raw_input()
+            #raw_input()
             est.append(est_k)
     est = np.array(est)
     T = []
@@ -99,10 +110,11 @@ def main():
         sol_d = sol[:, d]  # shape(1, N)
         T_d = np.dot(sol_d, pinv(est_d))  # shape(1, K)
         res_d = np.dot(T_d, est_d)  # shape(1, N)
-        res_training.append(res_d[0, :])
+        res_training.append(res_d)
         T.append(T_d)
-    res_training = np.array(res_training)
+    res_training = np.array(res_training).T
     results_on_subset(res_training, sol)
+    stat(res_training, sol)
     print " ... saving results ..."
     produce_fusion_res(T)  # shape(37, 1,  K)
 

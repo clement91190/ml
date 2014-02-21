@@ -4,7 +4,7 @@ import csv
 
 
 methods = ["method_gray"]
-learn_type = ["global", "q1", "q2"]
+learn_type = ["global", "q1", "q2", "q3", "q4"]
 
 
 def load_est(method, learn_type, set="train"):
@@ -96,9 +96,11 @@ def main():
     sol = load_sol("train")
     for m in methods:
         for lt in learn_type:
-#TODO add try
+#TODO add try    
+            print "###  Method ", m, " learn type ", lt, "###"
             est_k, ids = load_est(m, lt, "train")
             stat(est_k, sol)
+            results_on_subset(est_k, sol)
             #raw_input()
             est.append(est_k)
     est = np.array(est)

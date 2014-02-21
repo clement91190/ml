@@ -26,19 +26,19 @@ def load_data(learn_type, method):
 
 def main():
     method = "method_gray"
-    learn_type = "global"
+    learn_type = "q4"
     try:
         os.mkdir('data/' + method + '/' + learn_type)
     except:
         pass
-    learning_rate = 0.8
+    learning_rate = 0.2
     train, validate, test = load_data(learn_type, method)
    # N, feats, n_out = 100, 10, 2
    # train = (rng.randn(N, feats), 0.5 * np.ones((N, n_out)))
    # validate = (rng.randn(N, feats), 0.5 * np.ones((N, n_out)))
    # test = (rng.randn(N, feats), 0.5 * np.ones((N, n_out)))
     D = (train, validate, test)
-    trainer = NNTrainer(D, method, learn_type, load=False, learning_rate=learning_rate, n_train_batches=50)
+    trainer = NNTrainer(D, method, learn_type, load=True, learning_rate=learning_rate, n_train_batches=50)
     trainer.train_loop()
     #print trainer.predict(D[0])
     print trainer.neural_net.params

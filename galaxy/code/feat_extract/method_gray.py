@@ -1,7 +1,7 @@
 """ simple feature extraction using black and white features"""
 from PIL import Image
 import numpy as np
-from utils import save_testing, save_training, load_data, prepare_train_valid_test
+from code.feat_extract.utils import save_testing, save_training, load_data, prepare_train_valid_test
 
 
 class GrayExtractor():

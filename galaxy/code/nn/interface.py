@@ -31,7 +31,7 @@ def main():
         os.mkdir('data/' + method + '/' + learn_type)
     except:
         pass
-    learning_rate = 3.0
+    learning_rate = 0.01
     train, validate, test = load_data(learn_type, method)
    # N, feats, n_out = 100, 10, 2
    # train = (rng.randn(N, feats), 0.5 * np.ones((N, n_out)))

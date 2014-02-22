@@ -7,13 +7,18 @@ train_feat should be
 """
 
 #extraction methods:
-from method_gray import GrayExtractor
-from method_gray_center import GrayCenterExtractor
+from code.feat_extract.method_gray import GrayExtractor
+from code.feat_extract.method_gray_center import GrayCenterExtractor
+from code.feat_extract.method_gray_large import GrayLargeExtractor
+from code.feat_extract.method_hog import HOGExtractor
+from code.feat_extract.method_LLE import LLEExtractor
 
 methods_map = {
     'method_gray': GrayExtractor,
     'method_gray_center': GrayCenterExtractor,
-    }  # feature_extraction is a function that take
+    'method_gray_large': GrayLargeExtractor,
+    'method_LLE': LLEExtractor,
+    'method_hog': HOGExtractor}  # feature_extraction is a function that take
 
 pixelSize = 4
 img_size = 36
@@ -25,7 +30,7 @@ crop_dimensions = (small, small, small + img_size * pixelSize, small + img_size 
 
 def main():
 
-    method = "method_gray_center"
+    method = "method_LLE"
     feature_extractor = methods_map[method]()
     feature_extractor.run()
     print "...done"

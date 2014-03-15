@@ -38,7 +38,7 @@ class NNTrainer():
         #mlp_in = nkerns[1] * 4 * 4
         #mlp_architecture = [mlp_in, 100, 100, self.label_size]
         #architecture = (self.feature_size, nkerns, mlp_architecture)
-        architecture = [self.feature_size, 150, 100, self.label_size]
+        architecture = [self.feature_size, 150, 100, 80, self.label_size]
         params = None
 
         if load:

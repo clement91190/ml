@@ -25,8 +25,8 @@ class HiddenLayer(object):
             b = numpy.zeros((1, n_out), dtype=theano.config.floatX)
             #b = theano.shared(value=b_values, name='b', borrow=True)
 
-        self.W = theano.shared(W)
-        self.b = theano.shared(b)
+        self.W = theano.shared(W, borrow=True)
+        self.b = theano.shared(b, borrow=True)
 
         self.output = activation(T.dot(input, self.W) + T.dot(T.ones_like(T.eye(input.shape[0], 1)), self.b))
         # parameters of the model
@@ -37,7 +37,7 @@ class MLP(object):
     def __init__(self, input, y, architecture, params=None):
 #TODO change this for any architecture.
         self.L1_reg = 0.00
-        self.L2_reg = 0. #0.0005
+        self.L2_reg = 0 #0.0001  #05
         n_out = architecture[-1]
         n_hiddens = architecture[:-2]
         n_hidden_layers = len(n_hiddens)

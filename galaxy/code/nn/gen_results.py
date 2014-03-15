@@ -40,7 +40,18 @@ def write(dataset, index, method, learn_type, set):
 
 
 def main():
-    methods = ["method_gray", "method_gray_center", "method_hog", "method_gray_large"]
+
+    methods = [
+        #"method_gray",
+        #"method_gray_center",
+        #"method_hog",
+        #"method_PCA",
+        #"method_PCA",
+        "method_gray_ultra_center",
+        #"method_PCA_var1",
+    ]
+
+
     learn_types = ["global"]
     for m in methods:
         train_dataset, index = load_dataset(m, "train")

@@ -14,11 +14,11 @@ rng = np.random
 class LogisticRegression():
     def __init__(self, x, y, n_in, n_out, W=None, b=None):
         if W is None:
-            self.W = theano.shared(rng.random((n_in, n_out)))
-            self.b = theano.shared(rng.random((1, n_out)))
+            self.W = theano.shared(rng.random((n_in, n_out)), borrow=True)
+            self.b = theano.shared(rng.random((1, n_out)), borrow=True)
         else:
-            self.W = theano.shared(W)
-            self.b = theano.shared(b)
+            self.W = theano.shared(W, borrow=True)
+            self.b = theano.shared(b, borrow=True)
         #self.n_batch = x.shape[0]
         activation = T.nnet.sigmoid
         #activation = T.tanh
@@ -31,8 +31,8 @@ class LogisticRegression():
         self.params = [self.W, self.b]
 
     def reinit(self, x, y, W, b):
-        self.W = theano.shared(W)
-        self.b = theano.shared(b)
+        self.W = theano.shared(W, borrow=True)
+        self.b = theano.shared(b, borrow=True)
         #self.n_batch = x.shape[0]
         activation = T.nnet.sigmoid
         #self.p_1 = 1 / (1 + T.exp(-T.dot(x, self.W) - T.dot(np.ones((self.n_batch, 1)), self.b)))

@@ -3,7 +3,14 @@ from numpy.linalg import pinv
 import csv
 
 
-methods = ["method_gray", "method_gray_center", "method_hog"]
+methods = [
+    "method_gray",
+    "method_gray_center",
+    "method_gray_ultra_center",
+    "method_hog",
+    "method_PCA",
+    "method_gray_large"
+]
 learn_type = ["global"]  # , "q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8"]
 ind = [1, 4, 6, 8, 12, 16, 19, 26, 29, 32, 38]
 

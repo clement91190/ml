@@ -14,28 +14,67 @@ crop_dimensions = (small, small, small + img_size * pixelSize, small + img_size 
 
 def load_img(num, path):
     """ return the numpy array of the img """
-    pic = Image.open(path + num + '.jpg')
+    pic = Image.open(path + str(num) + '.jpg')
+    #return pic
     pic = pic.crop(crop_dimensions)
-    pic = pic.resize((64, 64))
+    pic = pic.resize((32, 32))
     return 1.0 * np.array(pic).flatten() / 255.0
 
 
-def load_random_sample(size):
-    """ load a random sample of images to be used in manifold learning... """
+def load_ids_labels():
     label_path = 'data/original_data/training_solutions_rev1.csv'
-    img_path = 'data/original_data/training_set/img/'
-    pics = []
     labels = []
     ids = []
-    selected_ids = []
-    selected_labels = []
     print "... loading sample "
     with open(label_path) as label_f:
         reader = csv.reader(label_f)
         for i, row in enumerate(reader):
             if i > 0:
-                labels.append(row[1:])
-                ids.append(row[0])
+                labels.append(np.array(row[1:], dtype="float32"))
+                ids.append(int(row[0]))
+    return (ids, np.array(labels))
+
+
+def get_maximizing_variance_samp(size, answer):
+    """ return the size elements that maximize the variance of the answer """
+    ids, labels = load_ids_labels()
+    ids, labels = zip(*sorted(zip(ids, labels), key=lambda (id, l): l[answer]))
+    labels = np.array(labels)
+
+    max = 0.
+    kmax = 0
+
+    for k in range(size):
+        ind = range(k) + range(labels.shape[0] - (size - k), labels.shape[0])
+        std = labels[ind][answer].std()
+        if std > max:
+            max = std
+            kmax = k
+    ind = range(kmax) + range(labels.shape[0] - (size - kmax), labels.shape[0])
+    selected_ids = [ids[i] for i in ind]
+    selected_labels = labels[ind]
+    pics = load_list_of_ids(selected_ids)
+    return (pics, selected_labels, selected_ids)
+
+
+def load_list_of_ids(ids):
+    """ return the images corresponding to a list of ids """
+    pics = []
+    img_path = 'data/original_data/training_set/img/'
+    for j, id in enumerate(ids):
+        if j % 1000 == 0:
+            print "loading ", j
+        pics.append(load_img(id, img_path))
+    return pics
+
+
+def load_random_sample(size):
+    """ load a random sample of images to be used in manifold learning... """
+    ids, labels = load_ids_labels()
+    img_path = 'data/original_data/training_set/img/'
+    selected_ids = []
+    selected_labels = []
+    pics = []
     id_len = len(ids)
 
     for i in range(size):

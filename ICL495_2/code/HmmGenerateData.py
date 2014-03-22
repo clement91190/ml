@@ -93,7 +93,7 @@ class HMM:
         return alpha
 
     def beta(self, obs):
-        """ backward pass """
+        """ backward pass, smoothing """
         beta = np.ones((self.T, self.n_state))  # keep the result in an array for faster recursion
         for k, o in enumerate(reversed(obs[1:])):
             o = int(o)
@@ -147,9 +147,13 @@ class HMM:
 
             pis.append(gamma[0])
             As.append(normalize_rows(np.sum(ksi, 0)))
+            E = np.zeros((self.n_state, self.n_letters))
             for k in range(self.n_letters):
-                self.E[:, k] = np.sum((self.Y[0, :] == k) * gamma.T, 1)
-            Es.append(normalize_rows(self.E))
+                E[:, k] = np.sum([gamma[t, :] for t, o in enumerate(obs) if o == k], 0) 
+                
+            Es.append(normalize_rows(E))
+            #print Es[-1]
+            #raw_input()
 
         print "pi", np.mean(pis, 0)
         print "A", np.mean(As, 0)

@@ -5,8 +5,8 @@ import numpy as np
 import csv
 import os
 
-pixelSize = 5
-img_size = 36
+pixelSize = 2
+img_size = 64
 size = 424
 small = (size - img_size * pixelSize) / 2
 crop_dimensions = (small, small, small + img_size * pixelSize, small + img_size * pixelSize)
@@ -17,8 +17,8 @@ def load_img(num, path):
     pic = Image.open(path + str(num) + '.jpg')
     #return pic
     pic = pic.crop(crop_dimensions)
-    pic = pic.resize((32, 32))
-    return 1.0 * np.array(pic).flatten() / 255.0
+    pic = pic.resize((64, 64))
+    return 1.0 * np.array(pic, dtype='float32').flatten() / 255.0
 
 
 def load_ids_labels():
@@ -146,7 +146,9 @@ def save_training(method, rval):
     except:
         pass
     with open('data/' + method + '/training_set.pkl', 'w') as f:
-        cPickle.dump(rval, f)
+        p = cPickle.Pickler(f) 
+        p.fast = True 
+        p.dump(rval)
 
 
 def save_testing(method, test_features):

@@ -15,6 +15,7 @@ from code.feat_extract.method_hog import HOGExtractor
 from code.feat_extract.method_LLE import LLEExtractor
 from code.feat_extract.method_PCA import PCAExtractor
 from code.feat_extract.method_PCA_max_var1 import PCAVAR1Extractor
+from code.feat_extract.method_color import COLORExtractor
 
 methods_map = {
     'method_gray': GrayExtractor,
@@ -24,6 +25,7 @@ methods_map = {
     'method_LLE': LLEExtractor,
     'method_PCA': PCAExtractor,
     'method_PCA_var1': PCAVAR1Extractor,
+    'method_color': COLORExtractor,
     'method_hog': HOGExtractor}  # feature_extraction is a function that take
 
 pixelSize = 4
@@ -36,7 +38,7 @@ crop_dimensions = (small, small, small + img_size * pixelSize, small + img_size 
 
 def main():
 
-    method = "method_PCA_var1"
+    method = "method_color"
     feature_extractor = methods_map[method]()
     feature_extractor.run()
     print "...done"
